@@ -1,0 +1,9 @@
+.main-video-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#player-element {
+  max-width: 100%;
+}
