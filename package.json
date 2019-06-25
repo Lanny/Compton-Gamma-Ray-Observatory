@@ -1,0 +1,17 @@
+{
+  "name": "stream-sync",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "server/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lanny",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "express": "^4.15.2",
+    "pug": "^2.0.4",
+    "socket.io": "^2.2.0"
+  }
+}
