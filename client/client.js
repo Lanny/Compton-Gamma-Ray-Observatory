@@ -5,10 +5,26 @@ window.sendMessage = (eventName, payload) => {
 }
 
 const player = document.getElementById('player-element')
+const setTime = timestamp => player.currentTime = timestamp
 
-socket.on('setTime', event => {
-  player.currentTime = event.targetTime
-})
+const handlers = {
+  setTime: e => {
+    setTime(e.timestamp)
+  },
+  startPlayback: e => {
+    setTime(e.timestamp)
+    player.play()
+  },
+  stopPlayback: e => {
+    setTime(e.timestamp)
+    player.pause()
+  }
+}
+
+for (let eventName in handlers) {
+  socket.on(eventName, handlers[eventName])
+}
+
 
 const broadcastTime = () => {
   socket.emit('declareTime', { currentTime: player.currentTime })
@@ -19,3 +35,17 @@ const broadcastTime = () => {
 broadcastTime()
 
 
+document.getElementById('cgro-play')
+  .addEventListener('click', () => {
+    socket.emit('reqStartPlayback', {
+      currentTime: player.currentTime
+    })
+  })
+
+document.getElementById('cgro-pause')
+  .addEventListener('click', () => {
+    player.pause()
+    socket.emit('reqPausePlayback', {
+      currentTime: player.currentTime
+    })
+  })

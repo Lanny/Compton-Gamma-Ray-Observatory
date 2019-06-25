@@ -6,7 +6,11 @@ html
   body
     h1 StreamSync v#{version}
     video#player-element(controls)
-      source(src="http://iss.lannysport.net/heap/2019032622090300-C6D726972790F87F6521C61FBA400A1DX.mp4" type="video/mp4")
+      source(src="http://iss.lannysport.net/heap/smush.mp4" type="video/mp4")
       p Video playback is not supported by your browser
+
+    button#cgro-play Play
+    button#cgro-pause Pause
+
     script(src="/socket.io/socket.io.js")
     script(src="/static/client.js")
