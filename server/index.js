@@ -10,20 +10,63 @@ const packageJson = require('../package.json')
 
 const indexTemplate = pug.compileFile('templates/index.pug')
 
+const MAX_DESYNC = 2.0
+const PING_INTERVAL = 1.5
+const LATENCY_MEASURES = 10
+const TARGETING_WINDOW = 2.0
+
 class Client {
   constructor(socket, room) {
     this.s = socket
     this.r = room
     this.id = uuidv4()
+
+    this.pings = {}
+    this.pingSeqId = 0
     this.latencyMeasures = []
+
     this.playbackReport = {
       measured: 0,
       timestamp: 0
     }
 
     this.s.on('disconnect', this.onDisconnect.bind(this))
+    this.s.on('CGRO-pong', this.onPong.bind(this))
     this.s.on('reqStartPlayback', this.onReqStartPlayback.bind(this))
     this.s.on('reqPausePlayback', this.onReqPausePlayback.bind(this))
+  }
+
+  issuePing() {
+    const now = Date.now()
+    const seqId = this.pingSeqId++
+    this.pings[seqId] = { sent: now }
+
+    this.s.emit('CGRO-ping', {
+      seqId,
+      estLatency: this.estimateLatency()
+    })
+  }
+
+  onPong(e) {
+    const now = Date.now()
+    const ping = this.pings[e.seqId]
+
+    this.latencyMeasures.push(now - ping.sent)
+
+    while (this.latencyMeasures.length > LATENCY_MEASURES) {
+      this.latencyMeasures.shift()
+    }
+
+    delete this.pings[e.seqId]
+  }
+
+  estimateLatency() {
+    let latency = 0
+    for (var i=0; i<this.latencyMeasures.length; i++) {
+      latency += this.latencyMeasures[i]
+    }
+
+    return latency / this.latencyMeasures.length
   }
 
   onDisconnect(e) {
@@ -55,6 +98,7 @@ class Room {
     }
 
     io.on('connection', this.onConnect.bind(this))
+    this.poll()
   }
 
   onConnect(socket) {
@@ -82,6 +126,31 @@ class Room {
     io.emit('stopPlayback', {
       timestamp: currentTime
     })
+  }
+
+  poll() {
+    for (let clientId in this.clients) {
+      this.clients[clientId].issuePing()
+    }
+
+    setTimeout(this.poll.bind(this), ~~(PING_INTERVAL * 1000))
+  }
+
+  staggeredBroadcast(cb) {
+    const clients = []
+    const latencies = []
+
+    for (let clientId in this.clients) {
+      clients.push(this.clients[clientId])
+      latencies.push(client.estimateLatency())
+    }
+
+    const maxLatency = Math.max.apply(Math, latencies)
+    const minLatency = Math.min.apply(Math, latencies)
+
+    for (let i=0; i<clients.length; i++) {
+      setTimeout(cb.bind(this, clients[i]), maxLatency - latencies[i])
+    }
   }
 }
 

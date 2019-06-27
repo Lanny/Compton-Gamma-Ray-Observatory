@@ -1,51 +1,76 @@
-const socket = io()
+;(function() {
+  const socket = io()
+  const playerElement = document.getElementById('player-element')
 
-window.sendMessage = (eventName, payload) => {
-  socket.emit(eventName, payload)
-}
+  class PlayerViewModel {
+    constructor(socket, playerElement) {
+      this.socket = socket
+      this.el = playerElement
+      this.currentTime = ko.observable(0)
+      this.playStatus = ko.observable('PAUSED')
 
-const player = document.getElementById('player-element')
-const setTime = timestamp => player.currentTime = timestamp
+      this.playPauseIcon = ko.computed(() => (
+        {
+          'PAUSED': '/static/svg/play-control.svg',
+          'PLAYING': '/static/svg/pause-control.svg'
+        }[this.playStatus()]
+      ))
 
-const handlers = {
-  setTime: e => {
-    setTime(e.timestamp)
-  },
-  startPlayback: e => {
-    setTime(e.timestamp)
-    player.play()
-  },
-  stopPlayback: e => {
-    setTime(e.timestamp)
-    player.pause()
+      this.socket.on('setTime', this.onSetTime.bind(this))
+      this.socket.on('startPlayback', this.onStartPlayback.bind(this))
+      this.socket.on('stopPlayback', this.onStopPlayback.bind(this))
+      this.socket.on('CGRO-ping', this.onPing.bind(this))
+    }
+
+    _setTime(timestamp) {
+      this.el.currentTime = timestamp
+    }
+
+    _startLocalPlayback() {
+      this.el.play()
+      this.playStatus('PLAYING')
+    }
+
+    _pauseLocalPlayback() {
+      this.el.pause()
+      this.playStatus('PAUSED')
+    }
+
+    togglePlayState() {
+      if (this.playStatus() === 'PLAYING') {
+        this._pauseLocalPlayback()
+        socket.emit('reqPausePlayback', {
+          currentTime: this.el.currentTime
+        })
+      } else if (this.playStatus() === 'PAUSED') {
+        socket.emit('reqStartPlayback', {
+          currentTime: this.el.currentTime
+        })
+      }
+    }
+
+    onSetTime(e) {
+      this._setTime(e.timestamp)
+    }
+
+    onStartPlayback(e) {
+      this._setTime(e.timestamp)
+      this._startLocalPlayback()
+    }
+
+    onStopPlayback(e) {
+      this._setTime(e.timestamp)
+      this._pauseLocalPlayback()
+    }
+
+    onPing(e) {
+      this.socket.emit('CGRO-pong', {
+        seqId: e.seqId,
+        currentTime: this.el.currentTime
+      })
+    }
   }
-}
 
-for (let eventName in handlers) {
-  socket.on(eventName, handlers[eventName])
-}
-
-
-const broadcastTime = () => {
-  socket.emit('declareTime', { currentTime: player.currentTime })
-
-  setTimeout(broadcastTime, 1000)
-}
-
-broadcastTime()
-
-
-document.getElementById('cgro-play')
-  .addEventListener('click', () => {
-    socket.emit('reqStartPlayback', {
-      currentTime: player.currentTime
-    })
-  })
-
-document.getElementById('cgro-pause')
-  .addEventListener('click', () => {
-    player.pause()
-    socket.emit('reqPausePlayback', {
-      currentTime: player.currentTime
-    })
-  })
+  const playerVM = new PlayerViewModel(socket, playerElement)
+  ko.applyBindings(playerVM)
+})()

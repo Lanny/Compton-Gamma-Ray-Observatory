@@ -3,17 +3,22 @@ doctype html
 html
   head
     title CGRO v#{version}
+    link(rel="stylesheet" href="/static/vendor/normalize.css")
     link(rel="stylesheet" href="/static/css/style.css")
   body
     h1 Compton Gamma Ray Observatory v#{version}
     .main-video-container
-      video#player-element
-        source(src="http://iss.lannysport.net/heap/southern-charm/Southern.Charm.S01E02.Shepic.Fail.720p.BRAV.WEBRip.AAC2.0.x264.mp4" type="video/mp4")
-        // 
-        p Video playback is not supported by your browser
+      .player-container
+        video#player-element
+          source(src="http://iss.lannysport.net/heap/southern-charm/Southern.Charm.S01E04.Is.She.or.Isnt.She.720p.BRAV.WEBRip.AAC2.0.x264.mp4" type="video/mp4")
+          p Video playback is not supported by your browser
+        .player-controls
+          button.play-pause(data-bind="click: togglePlayState")
+            img(data-bind="attr: {src: playPauseIcon}")
 
     button#cgro-play Play
     button#cgro-pause Pause
 
     script(src="/socket.io/socket.io.js")
+    script(src="/static/vendor/knockout-3.5.0.js")
     script(src="/static/js/client.js")
