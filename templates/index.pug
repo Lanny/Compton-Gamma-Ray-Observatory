@@ -6,7 +6,7 @@ html
     link(rel="stylesheet" href="/static/vendor/normalize.css")
     link(rel="stylesheet" href="/static/css/style.css")
   body
-    h1 Compton Gamma Ray Observatory v#{version}
+    h1#CGRO-header Compton Gamma Ray Observatory v#{version}
     .main-video-container
       .player-container
         video#player-element
@@ -15,9 +15,6 @@ html
         .player-controls
           button.play-pause(data-bind="click: togglePlayState")
             img(data-bind="attr: {src: playPauseIcon}")
-
-    button#cgro-play Play
-    button#cgro-pause Pause
 
     script(src="/socket.io/socket.io.js")
     script(src="/static/vendor/knockout-3.5.0.js")

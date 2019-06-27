@@ -2,10 +2,26 @@ html {
   background-color: #272727;
 }
 
+#CGRO-header {
+  position: absolute;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.54);
+  margin: 0;
+  padding: 10px 20px;
+  font-family: Helvetica,sans-serif;
+  font-weight: lighter;
+
+  animation-duration: 4s;
+  animation-name: fadeout;
+  opacity: 0;
+}
+
 .main-video-container {
   width: 100%;
+  height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .player-container {
@@ -37,6 +53,7 @@ html {
 
 .play-pause {
   padding: 6px 13px;
+  cursor: pointer;
 }
 
 .play-pause img {
@@ -44,3 +61,8 @@ html {
   height: 15px;
 }
 
+@keyframes fadeout {
+  from { opacity: 1; }
+  50% { opacity: 1; }
+  to { opacity: 0; }
+}
