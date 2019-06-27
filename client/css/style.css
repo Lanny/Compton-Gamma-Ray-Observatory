@@ -39,6 +39,7 @@ html {
 #player-element {
   max-width: 100%;
   display: block;
+  cursor: pointer;
 }
 
 .player-controls {
