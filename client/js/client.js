@@ -2,6 +2,10 @@
   const socket = io()
   const playerElement = document.getElementById('player-element')
 
+  function formatTimestamp(ts) {
+    return `${~~(ts / 60)}:${('' + (~~ts % 60)).padStart(2, '0')}`
+  }
+
   class PlayerViewModel {
     constructor(socket, playerElement) {
       this.socket = socket
@@ -10,12 +14,8 @@
       this.playStatus = ko.observable('PAUSED')
 
       this.videoSrc = ko.observable('')
-      /*
       this.currentTime = ko.observable('0:00')
-      this.duration = ko.computed(() => {
-        this.videoSrc()
-      })
-      */
+      this.duration = ko.observable('0:00')
 
       this.playPauseIcon = ko.computed(() => (
         {
@@ -23,6 +23,14 @@
           'PLAYING': '/static/svg/pause-control.svg'
         }[this.playStatus()]
       ))
+
+      this.el.addEventListener('durationchange', () => {
+        this.duration(formatTimestamp(this.el.duration))
+      })
+
+      this.el.addEventListener('timeupdate', () => {
+        this.currentTime(formatTimestamp(this.el.currentTime))
+      })
 
       this.socket.on('hello', this.onHello.bind(this))
       this.socket.on('changeSrc', this.onChangeSrc.bind(this))

@@ -2,6 +2,10 @@ html {
   background-color: #272727;
 }
 
+body {
+  font-family: Verdana, sans-serif;
+}
+
 #CGRO-header {
   position: absolute;
   color: white;
@@ -44,6 +48,10 @@ html {
 
 .player-controls {
   background-color: #2d373a;
+  color: #7b868a;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
 }
 
 .player-controls button {

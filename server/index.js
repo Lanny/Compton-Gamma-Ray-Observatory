@@ -124,10 +124,8 @@ class Room {
   _getCurrentTime() {
     const { playing, measured, timestamp } = this.playbackStatus
     if (playing) {
-      console.log('baz')
       return timestamp + (Date.now() - measured) / 1000.0
     } else {
-      console.log('foo')
       return timestamp
     }
   }

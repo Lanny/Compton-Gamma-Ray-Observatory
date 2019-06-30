@@ -15,11 +15,10 @@ html
         .player-controls
           button.play-pause(data-bind="click: togglePlayState")
             img(data-bind="attr: {src: playPauseIcon}")
-          .spacer
-          //.time-indicator
-          //  .current-time
-          //  span /
-          //  .duration
+          .time-indicator
+            span.current-time(data-bind="text: currentTime")
+            span &nbsp;/&nbsp;
+            span.duration(data-bind="text: duration")
           
 
     script(src="/socket.io/socket.io.js")
