@@ -10,11 +10,17 @@ html
     .main-video-container
       .player-container
         video#player-element(data-bind="click: togglePlayState")
-          source(src="http://iss.lannysport.net/heap/southern-charm/Southern.Charm.S01E04.Is.She.or.Isnt.She.720p.BRAV.WEBRip.AAC2.0.x264.mp4" type="video/mp4")
+          source(data-bind="attr: {src: videoSrc}" type="video/mp4")
           p Video playback is not supported by your browser
         .player-controls
           button.play-pause(data-bind="click: togglePlayState")
             img(data-bind="attr: {src: playPauseIcon}")
+          .spacer
+          //.time-indicator
+          //  .current-time
+          //  span /
+          //  .duration
+          
 
     script(src="/socket.io/socket.io.js")
     script(src="/static/vendor/knockout-3.5.0.js")

@@ -34,6 +34,11 @@ class Client {
     this.s.on('CGRO-pong', this.onPong.bind(this))
     this.s.on('reqStartPlayback', this.onReqStartPlayback.bind(this))
     this.s.on('reqPausePlayback', this.onReqPausePlayback.bind(this))
+    this.s.on('reqChangeSrc', this.onReqChangeSrc.bind(this))
+  }
+
+  sendEvent(eventName, event) {
+    this.s.emit(eventName, event)
   }
 
   issuePing() {
@@ -41,7 +46,7 @@ class Client {
     const seqId = this.pingSeqId++
     this.pings[seqId] = { sent: now }
 
-    this.s.emit('CGRO-ping', {
+    this.sendEvent('CGRO-ping', {
       seqId,
       estLatency: this.estimateLatency()
     })
@@ -84,6 +89,10 @@ class Client {
     this.playbackReport.timestamp = e.currentTime
     this.r.pausePlayback(this, e.currentTime)
   }
+
+  onReqChangeSrc(e) {
+    this.r.changeSrc(e.src)
+  }
 }
 
 class Room {
@@ -91,6 +100,7 @@ class Room {
     this.io = io
     this.clients = {}
     this.clientCount = 0
+    this.currentSrc = ''
     this.playbackStatus = {
       playing: false,
       mesured: 0,
@@ -98,7 +108,36 @@ class Room {
     }
 
     io.on('connection', this.onConnect.bind(this))
+    this._updatePlaybackStatus(0, false)
     this.poll()
+  }
+
+  _updatePlaybackStatus(timestamp, playing, now) {
+    if (now === undefined)
+      now = Date.now()
+
+    this.playbackStatus.measured = now
+    this.playbackStatus.timestamp = timestamp
+    this.playbackStatus.playing = playing
+  }
+
+  _getCurrentTime() {
+    const { playing, measured, timestamp } = this.playbackStatus
+    if (playing) {
+      console.log('baz')
+      return timestamp + (Date.now() - measured) / 1000.0
+    } else {
+      console.log('foo')
+      return timestamp
+    }
+  }
+
+  _getStatus() {
+    return {
+      currentSrc: this.currentSrc,
+      playing: this.playbackStatus.playing,
+      timestamp: this._getCurrentTime()
+    }
   }
 
   onConnect(socket) {
@@ -106,6 +145,7 @@ class Room {
     this.clients[client.id] = client;
     this.clientCount++
 
+    client.sendEvent('hello', this._getStatus())
     console.log(`Client joined, currently ${this.clientCount} clients.`)
   }
 
@@ -117,15 +157,26 @@ class Room {
   }
 
   startPlayback(client, currentTime) {
+    this._updatePlaybackStatus(currentTime, true)
     io.emit('startPlayback', {
       timestamp: currentTime
     })
   }
 
   pausePlayback(client, currentTime) {
+    this._updatePlaybackStatus(currentTime, false)
     io.emit('stopPlayback', {
       timestamp: currentTime
     })
+  }
+
+  changeSrc(newSrc) {
+    this.currentSrc = newSrc
+    this.playbackStatus.playing = false
+    this.playbackStatus.measured = Date.now()
+    this.playbackStatus.timestamp = 0
+
+    io.emit('changeSrc', { 'src': newSrc })
   }
 
   poll() {

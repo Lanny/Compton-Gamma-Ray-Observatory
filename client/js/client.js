@@ -9,6 +9,14 @@
       this.currentTime = ko.observable(0)
       this.playStatus = ko.observable('PAUSED')
 
+      this.videoSrc = ko.observable('')
+      /*
+      this.currentTime = ko.observable('0:00')
+      this.duration = ko.computed(() => {
+        this.videoSrc()
+      })
+      */
+
       this.playPauseIcon = ko.computed(() => (
         {
           'PAUSED': '/static/svg/play-control.svg',
@@ -16,10 +24,16 @@
         }[this.playStatus()]
       ))
 
+      this.socket.on('hello', this.onHello.bind(this))
+      this.socket.on('changeSrc', this.onChangeSrc.bind(this))
       this.socket.on('setTime', this.onSetTime.bind(this))
       this.socket.on('startPlayback', this.onStartPlayback.bind(this))
       this.socket.on('stopPlayback', this.onStopPlayback.bind(this))
       this.socket.on('CGRO-ping', this.onPing.bind(this))
+    }
+
+    emit(eventName, event) {
+      this.socket.emit(eventName, event)
     }
 
     _setTime(timestamp) {
@@ -36,17 +50,42 @@
       this.playStatus('PAUSED')
     }
 
+    _setSrc(newSrc) {
+      this.videoSrc(newSrc)
+      this.el.load()
+    }
+
     togglePlayState() {
       if (this.playStatus() === 'PLAYING') {
         this._pauseLocalPlayback()
-        socket.emit('reqPausePlayback', {
+        this.emit('reqPausePlayback', {
           currentTime: this.el.currentTime
         })
       } else if (this.playStatus() === 'PAUSED') {
-        socket.emit('reqStartPlayback', {
+        this.emit('reqStartPlayback', {
           currentTime: this.el.currentTime
         })
       }
+    }
+
+    requestChangeSource(newSrc) {
+      this._pauseLocalPlayback()
+      this.emit('reqChangeSrc', { src: newSrc })
+    }
+
+    onHello(e) {
+      this._pauseLocalPlayback()
+
+      this._setSrc(e.currentSrc)
+      this._setTime(e.timestamp)
+
+      if (e.playing)
+        this._startLocalPlayback()
+    }
+
+    onChangeSrc(e) {
+      this._pauseLocalPlayback()
+      this._setSrc(e.src)
     }
 
     onSetTime(e) {
@@ -64,7 +103,7 @@
     }
 
     onPing(e) {
-      this.socket.emit('CGRO-pong', {
+      this.emit('CGRO-pong', {
         seqId: e.seqId,
         currentTime: this.el.currentTime
       })
@@ -73,4 +112,7 @@
 
   const playerVM = new PlayerViewModel(socket, playerElement)
   ko.applyBindings(playerVM)
+
+  window.cgroSocket = socket
+  window.PVM = playerVM
 })()
