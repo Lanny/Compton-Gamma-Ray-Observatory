@@ -23,7 +23,7 @@ html
             span &nbsp;/&nbsp;
             span.duration(data-bind="text: duration")
           .spacer
-          button(data-bind="click: promptForNewSource")
+          button.change-src(data-bind="click: promptForNewSource")
             img(src="/static/svg/change-video.svg")
 
     script#faux-window-template(type="text/html")
