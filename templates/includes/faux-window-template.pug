@@ -1,0 +1,7 @@
+.fw-container(data-bind="style: {top: fwY, left: fwX, width: fwWidth, height: fwHeight}")
+  .title-bar(data-bind=`
+    event: { mousedown: fwStartDrag },
+    style: {cursor: fwDragging() ? 'grabbing' : 'grab' }
+  `)
+    .title(data-bind="text: fwTitle")
+  .content(data-bind="template: {name: fwTemplateName, data: $data}")

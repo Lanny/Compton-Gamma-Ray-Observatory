@@ -10,7 +10,11 @@
   "author": "Lanny",
   "license": "GPL-3.0",
   "dependencies": {
-    "express": "^4.15.2",
+    "express": "^4.17.1",
+    "gulp": "^4.0.2",
+    "gulp-flatten": "^0.4.0",
+    "gulp-less": "^4.0.1",
+    "gulp-sourcemaps": "^2.6.5",
     "pug": "^2.0.4",
     "socket.io": "^2.2.0",
     "uuid": "^3.3.2"

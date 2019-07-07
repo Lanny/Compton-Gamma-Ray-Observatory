@@ -203,7 +203,7 @@ class Room {
   }
 }
 
-app.use('/static', express.static('client'))
+app.use('/static', express.static('./client'))
 
 app.get('/', (req, res) => {
   res.send(indexTemplate({ version: packageJson.version }))

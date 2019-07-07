@@ -6,6 +6,88 @@
     return `${~~(ts / 60)}:${('' + (~~ts % 60)).padStart(2, '0')}`
   }
 
+  class FauxWindowViewModel {
+    constructor(title, width, height, initialX, initialY) {
+      this.fwTitle = ko.observable(title)
+
+      if (!width) width = 300
+      if (!height) height = 100
+      if (!initialX)
+        initialX = document.documentElement.clientWidth  / 2 - width / 2
+      if (!initialY)
+        initialY = document.documentElement.clientHeight  / 2 - height / 2 - 300
+
+      this.fwWidth = ko.observable(width)
+      this.fwHeight = ko.observable(height)
+      this.fwX = ko.observable(initialX)
+      this.fwY = ko.observable(initialY)
+      this.fwDragging = ko.observable(false)
+    }
+
+    fwOnDrag(dX, dY) {
+      this.fwX(this.windowDragBase[0] + dX)
+      this.fwY(this.windowDragBase[1] + dY)
+    }
+
+    fwOnDragEnd() {
+      this.fwDragging(false)
+      this.windowDragBase = undefined
+    }
+
+    fwStartDrag(_, e) {
+      this.fwDragging(true)
+      this.windowDragBase = [this.fwX(), this.fwY()]
+      this.signalDragStart(e.clientX, e.clientY)
+    }
+  }
+
+  class PromptWindowViewModel extends FauxWindowViewModel {
+    constructor(title, query) {
+      super(title)
+      this.fwTemplateName = 'prompt-template'
+      this.query = query
+      this.response = ko.observable('')
+    }
+  }
+
+  class MasterViewModel {
+    constructor(playerVM) {
+      this.playerVM = playerVM
+      this.subwindows = ko.observableArray()
+      this.draggingWindow = ko.observable(null)
+      this.subwindowLookup = {}
+      this.dragBase = null
+      this._idCounter = 1
+    }
+
+    addSubwindow(subwindow) {
+      subwindow.id = this._idCounter++;
+      subwindow.signalDragStart = (baseX, baseY) => {
+        this.mouseDragBase = [baseX, baseY]
+        this.draggingWindow(subwindow.id)
+      }
+      this.subwindowLookup[subwindow.id] = subwindow
+      this.subwindows.push(subwindow)
+    }
+
+    onMouseMove(_, e) {
+      if (!this.draggingWindow())
+        return
+
+      const dx = e.clientX - this.mouseDragBase[0]
+      const dy = e.clientY - this.mouseDragBase[1]
+      this.subwindowLookup[this.draggingWindow()].fwOnDrag(dx, dy)
+    }
+
+    onMouseUp() {
+      if (!this.draggingWindow())
+        return
+
+      this.subwindowLookup[this.draggingWindow()].fwOnDragEnd()
+      this.draggingWindow(null)
+    }
+  }
+
   class PlayerViewModel {
     constructor(socket, playerElement) {
       this.socket = socket
@@ -119,7 +201,13 @@
   }
 
   const playerVM = new PlayerViewModel(socket, playerElement)
-  ko.applyBindings(playerVM)
+  const masterVM = new MasterViewModel(playerVM)
+
+  masterVM.addSubwindow(
+    new PromptWindowViewModel(
+      'Change Source', 'Enter the url of the new media source'))
+
+  ko.applyBindings(masterVM)
 
   window.cgroSocket = socket
   window.PVM = playerVM
