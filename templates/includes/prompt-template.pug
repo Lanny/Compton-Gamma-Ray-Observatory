@@ -1,6 +1,6 @@
 .prompt-container
   .query-line(data-bind="text: query")
-  form.response-container(action="#")
+  form.response-container(action="#" data-bind="submit: onSubmit")
     input(type="text" data-bind="value: response")
-    button Go
+    input(type="submit" value="Go")
 

@@ -22,6 +22,9 @@ html
             span.current-time(data-bind="text: currentTime")
             span &nbsp;/&nbsp;
             span.duration(data-bind="text: duration")
+          .spacer
+          button(data-bind="click: promptForNewSource")
+            img(src="/static/svg/change-video.svg")
 
     script#faux-window-template(type="text/html")
       include includes/faux-window-template.pug

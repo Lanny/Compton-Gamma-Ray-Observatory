@@ -47,6 +47,15 @@
       this.fwTemplateName = 'prompt-template'
       this.query = query
       this.response = ko.observable('')
+      this.promise = new Promise((resolve, reject) => {
+        this.resolve = resolve
+        this.reject = reject
+      })
+    }
+
+    onSubmit() {
+      this.resolve(this.response())
+      this.signalWindowClose()
     }
   }
 
@@ -65,6 +74,9 @@
       subwindow.signalDragStart = (baseX, baseY) => {
         this.mouseDragBase = [baseX, baseY]
         this.draggingWindow(subwindow.id)
+      }
+      subwindow.signalWindowClose = () => {
+        this.subwindows.remove(sw => sw.id === subwindow.id)
       }
       this.subwindowLookup[subwindow.id] = subwindow
       this.subwindows.push(subwindow)
@@ -158,6 +170,14 @@
       }
     }
 
+    promptForNewSource() {
+      const prompt = new PromptWindowViewModel(
+        'Change Source', 'Enter the url of the new media source')
+
+      prompt.promise.then(newSrc => this.requestChangeSource(newSrc))
+      masterVM.addSubwindow(prompt)
+    }
+
     requestChangeSource(newSrc) {
       this._pauseLocalPlayback()
       this.emit('reqChangeSrc', { src: newSrc })
@@ -202,10 +222,6 @@
 
   const playerVM = new PlayerViewModel(socket, playerElement)
   const masterVM = new MasterViewModel(playerVM)
-
-  masterVM.addSubwindow(
-    new PromptWindowViewModel(
-      'Change Source', 'Enter the url of the new media source'))
 
   ko.applyBindings(masterVM)
 
