@@ -1,4 +1,12 @@
-.fw-container(data-bind="style: {top: fwY, left: fwX, width: fwWidth, height: fwHeight}")
+.fw-container(data-bind=`
+    style: {
+      top: fwY,
+      left: fwX,
+      width: fwWidth,
+      height: fwHeight,
+      'z-index': $index() + 100,
+    }
+  `)
   .title-bar(data-bind=`
     event: { mousedown: fwStartDrag },
     style: {cursor: fwDragging() ? 'grabbing' : 'grab' }
