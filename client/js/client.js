@@ -15,7 +15,7 @@
       if (!initialX)
         initialX = document.documentElement.clientWidth  / 2 - width / 2
       if (!initialY)
-        initialY = document.documentElement.clientHeight  / 2 - height / 2 - 300
+        initialY = document.documentElement.clientHeight  / 2 - height / 2
 
       this.fwWidth = ko.observable(width)
       this.fwHeight = ko.observable(height)
@@ -136,6 +136,20 @@
 
     emit(eventName, event) {
       this.socket.emit(eventName, event)
+    }
+
+    startSimulatedBuffering(freq=3.0, duration=0.75, variance=0.2) {
+      const genTime = base => base + (Math.random() - 0.5) * variance
+      const pauseForBuffer = () => {
+        this._pauseLocalPlayback()
+        setTimeout(playAfterBuffer, genTime(duration) * 1000)
+      }
+      const playAfterBuffer = () => {
+        this._startLocalPlayback()
+        setTimeout(pauseForBuffer, genTime(freq) * 1000)
+      }
+
+      playAfterBuffer()
     }
 
     _setTime(timestamp) {

@@ -10,7 +10,7 @@ const packageJson = require('../package.json')
 
 const indexTemplate = pug.compileFile('templates/index.pug')
 
-const MAX_DESYNC = 2.0
+const MAX_DESYNC = 1.0
 const PING_INTERVAL = 1.5
 const LATENCY_MEASURES = 10
 const TARGETING_WINDOW = 2.0
@@ -26,7 +26,7 @@ class Client {
     this.latencyMeasures = []
 
     this.playbackReport = {
-      measured: 0,
+      measured: Date.now(),
       timestamp: 0
     }
 
@@ -62,6 +62,9 @@ class Client {
       this.latencyMeasures.shift()
     }
 
+    this.playbackReport.measured = now
+    this.playbackReport.timestamp = e.currentTime
+
     delete this.pings[e.seqId]
   }
 
@@ -72,6 +75,15 @@ class Client {
     }
 
     return latency / this.latencyMeasures.length
+  }
+
+  estimatePlaybackTime(playing, now=null) {
+    const { measured, timestamp } = this.playbackReport
+    if (now === null)
+      now = Date.now()
+
+    const deltaTime = playing ? (now - measured) : 0
+    return timestamp + deltaTime / 1000
   }
 
   onDisconnect(e) {
@@ -112,6 +124,14 @@ class Room {
     this.poll()
   }
 
+  _mapClients(cb) {
+    const ret = []
+    for (let clientId in this.clients) {
+      ret.push(cb(this.clients[clientId]))
+    }
+    return ret
+  }
+
   _updatePlaybackStatus(timestamp, playing, now) {
     if (now === undefined)
       now = Date.now()
@@ -136,6 +156,13 @@ class Room {
       playing: this.playbackStatus.playing,
       timestamp: this._getCurrentTime()
     }
+  }
+
+  _estimateDesync() {
+    const now = Date.now()
+    const playbackTimes = this._mapClients(
+      c => c.estimatePlaybackTime(this.playbackStatus.playing, now))
+    console.log(playbackTimes)
   }
 
   onConnect(socket) {
@@ -178,6 +205,8 @@ class Room {
   }
 
   poll() {
+    this._estimateDesync()
+
     for (let clientId in this.clients) {
       this.clients[clientId].issuePing()
     }
