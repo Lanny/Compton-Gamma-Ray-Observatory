@@ -2,6 +2,7 @@ const gulp = require('gulp')
 const flatten = require('gulp-flatten')
 const less = require('gulp-less')
 const sourcemaps = require('gulp-sourcemaps')
+const supervisor = require('gulp-supervisor')
 const path = require('path')
 
 function lessTask() {
@@ -24,5 +25,9 @@ gulp.task('less', gulp.series([], lessTask))
 
 gulp.task('watch', gulp.series(['less'], () => {
   gulp.watch(['./client/less/*.less'], lessTask)
+  supervisor('server/index.js', {
+    watch: ['server/', 'templates/'],
+    extensions: ['jade', 'pug'],
+  })
 }))
 
