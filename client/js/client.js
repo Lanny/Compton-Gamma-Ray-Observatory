@@ -24,20 +24,19 @@
       this.fwDragging = ko.observable(false)
     }
 
-    fwOnDrag(dX, dY) {
-      this.fwX(this.windowDragBase[0] + dX)
-      this.fwY(this.windowDragBase[1] + dY)
-    }
-
-    fwOnDragEnd() {
-      this.fwDragging(false)
-      this.windowDragBase = undefined
-    }
-
     fwStartDrag(_, e) {
-      this.fwDragging(true)
       this.windowDragBase = [this.fwX(), this.fwY()]
-      this.signalDragStart(e.clientX, e.clientY)
+      this.fwDragging(true)
+
+      masterVM.startDrag(e.clientX, e.clientY)
+        .drag((dX, dY) => {
+          this.fwX(this.windowDragBase[0] + dX)
+          this.fwY(this.windowDragBase[1] + dY)
+        })
+        .dragEnd(() => {
+          this.fwDragging(false)
+          this.windowDragBase = undefined
+        })
     }
   }
 
@@ -63,7 +62,7 @@
     constructor(playerVM) {
       this.playerVM = playerVM
       this.subwindows = ko.observableArray()
-      this.draggingWindow = ko.observable(null)
+      this.activeDrag = ko.observable(null)
       this.subwindowLookup = {}
       this.dragBase = null
       this._idCounter = 1
@@ -71,10 +70,6 @@
 
     addSubwindow(subwindow) {
       subwindow.id = this._idCounter++;
-      subwindow.signalDragStart = (baseX, baseY) => {
-        this.mouseDragBase = [baseX, baseY]
-        this.draggingWindow(subwindow.id)
-      }
       subwindow.signalWindowClose = () => {
         this.subwindows.remove(sw => sw.id === subwindow.id)
       }
@@ -82,21 +77,36 @@
       this.subwindows.push(subwindow)
     }
 
-    onMouseMove(_, e) {
-      if (!this.draggingWindow())
-        return
+    startDrag(baseX, baseY) {
+      const drag = {
+        _dragCB: () => null,
+        _dragEndCB: () => null,
+        drag: cb => (drag._dragCB = cb, drag),
+        dragEnd: cb => (drag._dragEndCB = cb, drag),
+        baseX,
+        baseY,
+      }
 
-      const dx = e.clientX - this.mouseDragBase[0]
-      const dy = e.clientY - this.mouseDragBase[1]
-      this.subwindowLookup[this.draggingWindow()].fwOnDrag(dx, dy)
+      this.activeDrag(drag)
+      return drag
+    }
+
+    onMouseMove(_, e) {
+      const drag = this.activeDrag()
+      if (!drag) return
+
+      const dx = e.clientX - drag.baseX
+      const dy = e.clientY - drag.baseY
+
+      drag._dragCB(dx, dy)
     }
 
     onMouseUp() {
-      if (!this.draggingWindow())
-        return
+      const drag = this.activeDrag()
+      if (!drag) return
 
-      this.subwindowLookup[this.draggingWindow()].fwOnDragEnd()
-      this.draggingWindow(null)
+      drag._dragEndCB()
+      this.activeDrag(null)
     }
   }
 
