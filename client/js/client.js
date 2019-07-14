@@ -6,6 +6,33 @@
     return `${~~(ts / 60)}:${('' + (~~ts % 60)).padStart(2, '0')}`
   }
 
+  function clamp(value, max, min) {
+    return Math.max(Math.min(max, value), min)
+  }
+
+  class VolumeControlViewModel {
+    constructor(videoEl, initialValue) {
+      this.el = videoEl
+      this.value = ko.observable()
+
+      // Subscribe first so initialValue gets set
+      this.value.subscribe(value =>  this.el.volume = value)
+      this.value(initialValue)
+      this.dbWidth = ko.computed(() => this.value() * 100 + '%')
+    }
+
+    startVolumeChange(_, e) {
+      const bounds = e.target.getBoundingClientRect()
+      const baseValue = (e.clientX - bounds.left) / bounds.width
+      this.value(baseValue)
+      masterVM.startDrag(e.clientX, e.clientY)
+        .drag((dX) => {
+          const value = baseValue + dX / bounds.width 
+          this.value(clamp(value, 1, 0))
+        })
+    }
+  }
+
   class FauxWindowViewModel {
     constructor(title, width, height, initialX, initialY) {
       this.fwTitle = ko.observable(title)
@@ -120,6 +147,7 @@
       this.videoSrc = ko.observable('')
       this.currentTime = ko.observable('0:00')
       this.duration = ko.observable('0:00')
+      this.volumeControl = new VolumeControlViewModel(this.el, .5)
 
       this.playPauseIcon = ko.computed(() => (
         {

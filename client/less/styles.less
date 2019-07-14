@@ -4,6 +4,7 @@
 @field-color: #312F2E;
 @seperator-color: #444240;
 @input-border-radius: 2px;
+@player-fg-color: #7b868a;
 
 .window-border() {
   overflow: hidden;
@@ -89,7 +90,7 @@ input[type="text"] {
 
   .player-controls {
     background-color: #2d373a;
-    color: #7b868a;
+    color: @player-fg-color;
     font-size: 12px;
     display: flex;
     align-items: center;
@@ -157,5 +158,30 @@ input[type="text"] {
   .response-container {
     margin-top: 10px;
     .input-line();
+  }
+}
+
+.volume-control {
+  display: flex;
+  align-self: stretch;
+
+  .drag-bar-container {
+    display: flex;
+    align-self: stretch;
+    align-items: center;
+    cursor: pointer;
+
+    .range {
+      pointer-events: none;
+      border: 1px solid @player-fg-color;
+      height: 4px;
+      width: 50px;
+      border-radius: 100px;
+
+      .value {
+        height: 100%;
+        background-color: @player-fg-color;
+      }
+    }
   }
 }

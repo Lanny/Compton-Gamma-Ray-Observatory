@@ -1,6 +1,6 @@
 {
   "name": "Compton-Gamma-Ray-Observatory",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A web app for roughly synchronizing video playback over latency riddled networks",
   "main": "server/index.js",
   "scripts": {

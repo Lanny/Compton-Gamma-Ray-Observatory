@@ -23,14 +23,18 @@ html
             span &nbsp;/&nbsp;
             span.duration(data-bind="text: duration")
           .spacer
+          .volume-control(data-bind=`
+            template: {name: 'drag-bar-template', data: volumeControl}
+          `)
           button.change-src(data-bind="click: promptForNewSource")
             img(src="/static/svg/change-video.svg")
 
     script#faux-window-template(type="text/html")
       include includes/faux-window-template.pug
-
     script#prompt-template(type="text/html")
       include includes/prompt-template.pug
+    script#drag-bar-template(type="text/html")
+      include includes/drag-bar-template.pug
 
     script(src="/socket.io/socket.io.js")
     script(src="/static/vendor/knockout-3.5.0.js")
