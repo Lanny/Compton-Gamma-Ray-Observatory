@@ -65,6 +65,10 @@
           this.windowDragBase = undefined
         })
     }
+
+    fwClose() {
+      this.signalWindowClose()
+    }
   }
 
   class PromptWindowViewModel extends FauxWindowViewModel {
@@ -81,6 +85,11 @@
 
     onSubmit() {
       this.resolve(this.response())
+      this.signalWindowClose()
+    }
+
+    fwClose() {
+      this.reject()
       this.signalWindowClose()
     }
   }
@@ -226,7 +235,10 @@
       const prompt = new PromptWindowViewModel(
         'Change Source', 'Enter the url of the new media source')
 
-      prompt.promise.then(newSrc => this.requestChangeSource(newSrc))
+      prompt
+        .promise
+        .then(newSrc => this.requestChangeSource(newSrc))
+        .catch(() => undefined)
       masterVM.addSubwindow(prompt)
     }
 
