@@ -5,7 +5,7 @@ html
     title CGRO v#{version}
     link(rel="stylesheet" href="/static/vendor/normalize.css")
     link(rel="stylesheet" href="/static/css/styles.css")
-  body(data-bind="event: {mousemove: onMouseMove, mouseup: onMouseUp}")
+  body(data-bind="event: {mousemove: onMouseMove, mouseup: onMouseUp, mouseleave: onMouseLeave}")
     .subwindows(data-bind="foreach: subwindows")
       div(data-bind="template: {name: 'faux-window-template', data: $data}")
 

@@ -137,13 +137,15 @@
       drag._dragCB(dx, dy)
     }
 
-    onMouseUp() {
+    _endDrag() {
       const drag = this.activeDrag()
       if (!drag) return
 
       drag._dragEndCB()
       this.activeDrag(null)
     }
+    onMouseUp() { this._endDrag() }
+    onMouseLeave() { this._endDrag() }
   }
 
   class PlayerViewModel {
