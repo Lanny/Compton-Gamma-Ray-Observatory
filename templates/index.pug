@@ -16,6 +16,7 @@ html
           source(data-bind="attr: {src: videoSrc}" type="video/mp4")
           p Video playback is not supported by your browser
         .player-controls
+          .time-bar(data-bind="style: { width: currentTimeRaw() / durationRaw() * 100 + '%' }")
           button.play-pause(data-bind="click: togglePlayState")
             img(data-bind="attr: {src: playPauseIcon}")
           .time-indicator

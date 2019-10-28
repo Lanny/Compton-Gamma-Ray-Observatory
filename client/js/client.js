@@ -152,13 +152,16 @@
     constructor(socket, playerElement) {
       this.socket = socket
       this.el = playerElement
-      this.currentTime = ko.observable(0)
+      this.currentTimeRaw = ko.observable(0)
+      this.durationRaw = ko.observable(0)
       this.playStatus = ko.observable('PAUSED')
 
       this.videoSrc = ko.observable('')
-      this.currentTime = ko.observable('0:00')
-      this.duration = ko.observable('0:00')
-      this.volumeControl = new VolumeControlViewModel(this.el, .5)
+      this.currentTime = ko.computed(
+        () => formatTimestamp(this.currentTimeRaw()))
+      this.duration = ko.computed(
+        () => formatTimestamp(this.durationRaw()))
+      this.volumeControl = new VolumeControlViewModel(this.el, .75)
 
       this.playPauseIcon = ko.computed(() => (
         {
@@ -168,11 +171,11 @@
       ))
 
       this.el.addEventListener('durationchange', () => {
-        this.duration(formatTimestamp(this.el.duration))
+        this.durationRaw(this.el.duration)
       })
 
       this.el.addEventListener('timeupdate', () => {
-        this.currentTime(formatTimestamp(this.el.currentTime))
+        this.currentTimeRaw(this.el.currentTime)
       })
 
       this.socket.on('hello', this.onHello.bind(this))
