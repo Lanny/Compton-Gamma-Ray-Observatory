@@ -9,26 +9,32 @@ html
     .subwindows(data-bind="foreach: subwindows")
       div(data-bind="template: {name: 'faux-window-template', data: $data}")
 
-    h1#CGRO-header Compton Gamma Ray Observatory v#{version}
-    .main-video-container
-      .player-container(data-bind="using: playerVM")
-        video#player-element(data-bind="click: togglePlayState")
-          source(data-bind="attr: {src: videoSrc}" type="video/mp4")
-          p Video playback is not supported by your browser
-        .player-controls
-          .time-bar(data-bind="style: { width: currentTimeRaw() / durationRaw() * 100 + '%' }")
-          button.play-pause(data-bind="click: togglePlayState")
-            img(data-bind="attr: {src: playPauseIcon}")
-          .time-indicator
-            span.current-time(data-bind="text: currentTime")
-            span &nbsp;/&nbsp;
-            span.duration(data-bind="text: duration")
-          .spacer
-          .volume-control(data-bind=`
-            template: {name: 'drag-bar-template', data: volumeControl}
-          `)
-          button.change-src(data-bind="click: promptForNewSource")
-            img(src="/static/svg/change-video.svg")
+    #stationary-content-container
+      h1#CGRO-header Compton Gamma Ray Observatory v#{version}
+
+      .main-video-container
+        .player-container(data-bind="using: playerVM")
+          video#player-element(data-bind="click: togglePlayState")
+            source(data-bind="attr: {src: videoSrc}" type="video/mp4")
+            p Video playback is not supported by your browser
+          .player-controls
+            .time-bar(data-bind="style: { width: currentTimeRaw() / durationRaw() * 100 + '%' }")
+            button.play-pause(data-bind="click: togglePlayState")
+              img(data-bind="attr: {src: playPauseIcon}")
+            .time-indicator
+              span.current-time(data-bind="text: currentTime")
+              span &nbsp;/&nbsp;
+              span.duration(data-bind="text: duration")
+            .spacer
+            .volume-control(data-bind=`
+              template: {name: 'drag-bar-template', data: volumeControl}
+            `)
+            button.change-src(data-bind="click: promptForNewSource")
+              img(src="/static/svg/change-video.svg")
+
+      .additional-controls
+        button#participants Participants
+        button#playback Playback
 
     script#faux-window-template(type="text/html")
       include includes/faux-window-template.pug
