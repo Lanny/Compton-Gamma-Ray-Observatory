@@ -69,6 +69,10 @@
     fwClose() {
       this.signalWindowClose()
     }
+
+    giveFocus() {
+      // TODO: layering system
+    }
   }
 
   class PromptWindowViewModel extends FauxWindowViewModel {
@@ -105,7 +109,7 @@
     }
 
     addSubwindow(subwindow) {
-      subwindow.id = this._idCounter++;
+      subwindow.id = this._idCounter++
       subwindow.signalWindowClose = () => {
         this.subwindows.remove(sw => sw.id === subwindow.id)
       }
@@ -237,14 +241,23 @@
     }
 
     promptForNewSource() {
-      const prompt = new PromptWindowViewModel(
-        'Change Source', 'Enter the url of the new media source')
+      if (this.changeSourcePrompt) {
+        this.changeSourcePrompt.giveFocus()
+        return
+      }
 
-      prompt
+      this.changeSourcePrompt = new PromptWindowViewModel(
+        'Change Source',
+        'Enter the url of the new media source')
+
+      this.changeSourcePrompt
         .promise
-        .then(newSrc => this.requestChangeSource(newSrc))
-        .catch(() => undefined)
-      masterVM.addSubwindow(prompt)
+        .then(newSrc => {
+          this.changeSourcePrompt = null
+          this.requestChangeSource(newSrc)
+        })
+        .catch(() => this.changeSourcePrompt = null)
+      masterVM.addSubwindow(this.changeSourcePrompt)
     }
 
     requestChangeSource(newSrc) {
