@@ -159,8 +159,13 @@
       this.currentTimeRaw = ko.observable(0)
       this.durationRaw = ko.observable(0)
       this.playStatus = ko.observable('PAUSED')
+      this.bufferEnd = ko.observable(0)
 
       this.videoSrc = ko.observable('')
+      this.bufferHealth = ko.computed(() => {
+        const timeRemaining = this.bufferEnd() - this.currentTimeRaw()
+        return `${timeRemaining.toFixed(1)}s`
+      })
       this.currentTime = ko.computed(
         () => formatTimestamp(this.currentTimeRaw()))
       this.duration = ko.computed(
@@ -188,6 +193,13 @@
       this.socket.on('startPlayback', this.onStartPlayback.bind(this))
       this.socket.on('stopPlayback', this.onStopPlayback.bind(this))
       this.socket.on('CGRO-ping', this.onPing.bind(this))
+
+      this._update()
+    }
+
+    _update() {
+      this.bufferEnd(this._getBufferEnd())
+      setTimeout(this._update.bind(this), 1000)
     }
 
     emit(eventName, event) {
@@ -299,6 +311,27 @@
         seqId: e.seqId,
         currentTime: this.el.currentTime
       })
+    }
+
+    _getBufferEnd() {
+      const idx = this._getCurrentBufferIndex()
+      return (idx !== -1) ? this.el.buffered.end(idx) : 0
+    }
+
+    _getCurrentBufferIndex() {
+      const cT = this.el.currentTime
+
+      for (let i = 0; i<this.el.buffered.length; i++) {
+        if (
+          this.el.buffered.start(i) < cT &&
+          this.el.buffered.end(i) >= cT
+        ) {
+          return i
+        }
+      }
+
+      console.warn(`currentTime (${cT}) falls outside any buffered range`)
+      return -1
     }
   }
 
