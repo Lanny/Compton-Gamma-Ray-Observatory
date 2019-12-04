@@ -18,7 +18,8 @@ html
 
       .main-video-container
         .player-container(data-bind="using: playerVM")
-          video#player-element(data-bind="click: togglePlayState")
+          #buffer-readout(data-bind="text: bufferHealth()")
+          video#player-element(data-bind="click: togglePlayState" preload="auto")
             source(data-bind="attr: {src: videoSrc}" type="video/mp4")
             p Video playback is not supported by your browser
           .player-controls

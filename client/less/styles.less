@@ -105,12 +105,22 @@ input[type="text"] {
 
 .player-container {
   .window-border();
+  position: relative;
 
   #player-element {
     max-width: 100%;
     max-height: calc(100vh - 32px);
     display: block;
     cursor: pointer;
+  }
+
+
+  #buffer-readout {
+    position: absolute;
+    color: white;
+    font-size: 9px;
+    left: 10px;
+    top: 5px;
   }
 
   .player-controls {
