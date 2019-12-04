@@ -5,8 +5,12 @@ html
     title CGRO v#{version}
     link(rel="stylesheet" href="/static/vendor/normalize.css")
     link(rel="stylesheet" href="/static/css/styles.css")
-  body(data-bind="event: {mousemove: onMouseMove, mouseup: onMouseUp, mouseleave: onMouseLeave}")
-    .subwindows(data-bind="foreach: subwindows")
+  body(data-bind=`event: {
+    mousemove: windowingVM.onMouseMove.bind(windowingVM),
+    mouseup: windowingVM.onMouseUp.bind(windowingVM),
+    mouseleave: windowingVM.onMouseLeave.bind(windowingVM)
+  }`)
+    .subwindows(data-bind="foreach: windowingVM.subwindows")
       div(data-bind="template: {name: 'faux-window-template', data: $data}")
 
     #stationary-content-container
@@ -34,7 +38,7 @@ html
 
       .additional-controls
         button#participants Participants
-        button#playback Playback
+        button#playback(data-bind="click: openPlaybackControls") Playback
 
     script#faux-window-template(type="text/html")
       include includes/faux-window-template.pug
@@ -42,6 +46,8 @@ html
       include includes/prompt-template.pug
     script#drag-bar-template(type="text/html")
       include includes/drag-bar-template.pug
+    script#playback-controls-template(type="text/html")
+      include includes/playback-controls-template.pug
 
     script(src="/socket.io/socket.io.js")
     script(src="/static/vendor/knockout-3.5.0.js")

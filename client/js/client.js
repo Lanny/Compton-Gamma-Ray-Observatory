@@ -25,7 +25,7 @@
       const bounds = e.target.getBoundingClientRect()
       const baseValue = (e.clientX - bounds.left) / bounds.width
       this.value(baseValue)
-      masterVM.startDrag(e.clientX, e.clientY)
+      windowingVM.startDrag(e.clientX, e.clientY)
         .drag((dX) => {
           const value = baseValue + dX / bounds.width 
           this.value(clamp(value, 1, 0))
@@ -55,7 +55,7 @@
       this.windowDragBase = [this.fwX(), this.fwY()]
       this.fwDragging(true)
 
-      masterVM.startDrag(e.clientX, e.clientY)
+      windowingVM.startDrag(e.clientX, e.clientY)
         .drag((dX, dY) => {
           this.fwX(this.windowDragBase[0] + dX)
           this.fwY(this.windowDragBase[1] + dY)
@@ -98,14 +98,32 @@
     }
   }
 
+  class PlaybackControlsViewModel extends FauxWindowViewModel {
+    constructor(PVM) {
+      super('Playback')
+      this.fwTemplateName = 'playback-controls-template'
+      this.PVM = PVM
+    }
+  }
+
   class MasterViewModel {
-    constructor(playerVM) {
+    constructor(windowingVM, playerVM) {
       this.playerVM = playerVM
+      this.windowingVM = windowingVM
+    }
+
+    openPlaybackControls() {
+    }
+  }
+
+  class WindowingViewModel {
+    constructor() {
       this.subwindows = ko.observableArray()
       this.activeDrag = ko.observable(null)
       this.subwindowLookup = {}
       this.dragBase = null
       this._idCounter = 1
+      this._windowTags = {}
     }
 
     addSubwindow(subwindow) {
@@ -115,6 +133,30 @@
       }
       this.subwindowLookup[subwindow.id] = subwindow
       this.subwindows.push(subwindow)
+    }
+
+    isTaggedWindowAlive(tag) {
+      if (tag in this._windowTags) {
+        if (this._windowTags[tag].id in this.subwindowLookup) {
+          return true
+        }
+      }
+
+      return false
+    }
+
+    addOrFocusTaggedSubwindow(tag, subwindow) {
+      if (tag in this._windowTags) {
+        if (this._windowTags[tag].id in this.subwindowLookup) {
+          this._windowTags[tag].giveFocus() 
+          return false
+        } else {
+          delete this._windowTags[tag]
+        }
+      }
+
+      this.addSubwindow(subwindow)
+      this._windowTags[tag] = subwindow
     }
 
     startDrag(baseX, baseY) {
@@ -241,23 +283,21 @@
     }
 
     promptForNewSource() {
-      if (this.changeSourcePrompt) {
-        this.changeSourcePrompt.giveFocus()
-        return
-      }
-
-      this.changeSourcePrompt = new PromptWindowViewModel(
+      const changeSourcePrompt = new PromptWindowViewModel(
         'Change Source',
         'Enter the url of the new media source')
 
-      this.changeSourcePrompt
+      changeSourcePrompt
         .promise
         .then(newSrc => {
           this.changeSourcePrompt = null
           this.requestChangeSource(newSrc)
         })
         .catch(() => this.changeSourcePrompt = null)
-      masterVM.addSubwindow(this.changeSourcePrompt)
+
+      windowingVM.addOrFocusTaggedSubwindow(
+        'player.source-prompt',
+        changeSourcePrompt)
     }
 
     requestChangeSource(newSrc) {
@@ -303,7 +343,8 @@
   }
 
   const playerVM = new PlayerViewModel(socket, playerElement)
-  const masterVM = new MasterViewModel(playerVM)
+  const windowingVM = new WindowingViewModel()
+  const masterVM = new MasterViewModel(windowingVM, playerVM)
 
   ko.applyBindings(masterVM)
 

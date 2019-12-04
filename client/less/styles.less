@@ -7,6 +7,7 @@
 @player-fg-color: #7b868a;
 @close-red: #fb3d3f;
 @bg-grey: #2d373a;
+@active-bg: #39464a;
 
 .window-border() {
   overflow: hidden;
@@ -39,6 +40,22 @@
     border-bottom-width: 1px;
     border-top-right-radius: @input-border-radius;
     border-bottom-right-radius: @input-border-radius;
+  }
+}
+
+.button() {
+  color: @text-color;
+  padding: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  border-top: 1px solid @seperator-color;
+  border-left: 1px solid @seperator-color;
+  border-right: 1px solid @seperator-color;
+  border-bottom: none;
+  background-color: @bg-grey;
+
+  &:hover, &:focus {
+    background-color: @active-bg;
   }
 }
 
@@ -149,12 +166,7 @@ input[type="text"] {
 
   & > button {
     flex: 1;
-    color: @text-color;
-    border-top: 1px solid @seperator-color;
-    border-left: 1px solid @seperator-color;
-    border-right: 1px solid @seperator-color;
-    border-bottom: none;
-    background-color: @bg-grey;
+    .button();
   }
 }
 
