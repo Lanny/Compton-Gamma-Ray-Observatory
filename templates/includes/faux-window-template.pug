@@ -6,6 +6,7 @@
       height: fwHeight,
       'z-index': 100 - windowOrder(),
     },
+    css: { 'has-focus': windowOrder() === 0 },
     event: { keydown: onKeyDown, focusin: () => $data.onFocusIn() }
   `)
   .title-bar(data-bind=`
