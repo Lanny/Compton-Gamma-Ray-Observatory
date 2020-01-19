@@ -104,6 +104,11 @@
       this.fwTemplateName = 'playback-controls-template'
       this.playerVM = playerVM
     }
+
+    adjustTime(delta) {
+      const newTime = this.playerVM.getCurrentTime() + delta
+      this.playerVM.requestPlayFromTime(newTime)
+    }
   }
 
   class MasterViewModel {
@@ -212,8 +217,7 @@
 
       this.videoSrc = ko.observable('')
       this.bufferHealth = ko.computed(() => {
-        const timeRemaining = this.bufferEnd() - this.currentTimeRaw()
-        return `${timeRemaining.toFixed(1)}s`
+        return `${this._currentBufferLength().toFixed(1)}s`
       })
       this.currentTime = ko.computed(
         () => formatTimestamp(this.currentTimeRaw()))
@@ -241,6 +245,7 @@
       this.socket.on('setTime', this.onSetTime.bind(this))
       this.socket.on('startPlayback', this.onStartPlayback.bind(this))
       this.socket.on('stopPlayback', this.onStopPlayback.bind(this))
+      this.socket.on('prepareToPlayFromTime', this.onPrepareToPlayFromTime.bind(this))
       this.socket.on('CGRO-ping', this.onPing.bind(this))
 
       this._update()
@@ -269,8 +274,17 @@
       playAfterBuffer()
     }
 
-    _setTime(timestamp) {
+    _setTime(timestamp, waitForBuffer, cb) {
       this.el.currentTime = timestamp
+
+      if (waitForBuffer !== undefined) {
+        const sub = this.bufferEnd.subscribe(bufferEnd => {
+          if (this._currentBufferLength() >= waitForBuffer) {
+            sub.dispose()
+            cb()
+          }
+        })
+      }
     }
 
     _startLocalPlayback() {
@@ -286,6 +300,10 @@
     _setSrc(newSrc) {
       this.videoSrc(newSrc)
       this.el.load()
+    }
+
+    getCurrentTime() {
+      return this.el.currentTime
     }
 
     togglePlayState() {
@@ -324,6 +342,11 @@
       this.emit('reqChangeSrc', { src: newSrc })
     }
 
+    requestPlayFromTime(timestamp) {
+      this._pauseLocalPlayback()
+      this.emit('reqPlayFromTime', { timestamp })
+    }
+
     onHello(e) {
       this._pauseLocalPlayback()
 
@@ -353,11 +376,21 @@
       this._pauseLocalPlayback()
     }
 
+    onPrepareToPlayFromTime({ timestamp, readyId }) {
+      this._setTime(timestamp, 1, () => {
+        this.emit('ready', { readyId })
+      })
+    }
+
     onPing(e) {
       this.emit('CGRO-pong', {
         seqId: e.seqId,
         currentTime: this.el.currentTime
       })
+    }
+
+    _currentBufferLength() {
+        return this.bufferEnd() - this.currentTimeRaw()
     }
 
     _getBufferEnd() {

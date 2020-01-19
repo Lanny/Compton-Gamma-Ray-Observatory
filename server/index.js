@@ -35,6 +35,11 @@ class Client {
     this.s.on('reqStartPlayback', this.onReqStartPlayback.bind(this))
     this.s.on('reqPausePlayback', this.onReqPausePlayback.bind(this))
     this.s.on('reqChangeSrc', this.onReqChangeSrc.bind(this))
+    this.s.on('ready', this.onReady.bind(this))
+    this.s.on(
+      'reqPlayFromTime',
+      ({ timestamp }) => this.r.playFromTime(timestamp)
+    )
   }
 
   sendEvent(eventName, event) {
@@ -105,12 +110,17 @@ class Client {
   onReqChangeSrc(e) {
     this.r.changeSrc(e.src)
   }
+
+  onReady(e) {
+    this.r.clientReady(this, e)
+  }
 }
 
 class Room {
   constructor(io) {
     this.io = io
     this.clients = {}
+    this.pendingReadies = {}
     this.clientCount = 0
     this.currentSrc = ''
     this.playbackStatus = {
@@ -122,6 +132,10 @@ class Room {
     io.on('connection', this.onConnect.bind(this))
     this._updatePlaybackStatus(0, false)
     this.poll()
+  }
+
+  _emit(eventName, data) {
+    this.io.emit(eventName, data)
   }
 
   _mapClients(cb) {
@@ -165,6 +179,22 @@ class Room {
     console.log(playbackTimes)
   }
 
+  _waitForReady(eventName, data) {
+    return (new Promise((res, rej) => {
+      const readyId = uuidv4()
+
+      this.pendingReadies[readyId] = {
+        numPending: Object.keys(this.clients).length,
+        readyClients: [],
+        readyId,
+        res,
+        rej
+      }
+
+      this._emit(eventName, { readyId, ...data })
+    }))
+  }
+
   onConnect(socket) {
     const client = new Client(socket, this);
     this.clients[client.id] = client;
@@ -181,18 +211,43 @@ class Room {
     console.log(`Client left, currently ${this.clientCount} clients.`)
   }
 
+  clientReady(client, { readyId }) {
+    const ready = this.pendingReadies[readyId]
+    if (!ready) {
+      console.warn(`No pending ready with id ${readyId}`)
+      return
+    }
+
+    ready.readyClients.push(client)
+    --ready.numPending
+
+    if (ready.numPending < 1) {
+      ready.res()
+      delete this.pendingReadies[readyId]
+    }
+  }
+
   startPlayback(client, currentTime) {
     this._updatePlaybackStatus(currentTime, true)
-    io.emit('startPlayback', {
+    this._emit('startPlayback', {
       timestamp: currentTime
     })
   }
 
   pausePlayback(client, currentTime) {
     this._updatePlaybackStatus(currentTime, false)
-    io.emit('stopPlayback', {
+    this._emit('stopPlayback', {
       timestamp: currentTime
     })
+  }
+
+  playFromTime(timestamp) {
+    this._waitForReady('prepareToPlayFromTime', { timestamp })
+      .then(() => {
+        this.staggeredBroadcast(client => {
+          client.sendEvent('startPlayback', { timestamp: timestamp })
+        })
+      })
   }
 
   changeSrc(newSrc) {
@@ -219,7 +274,8 @@ class Room {
     const latencies = []
 
     for (let clientId in this.clients) {
-      clients.push(this.clients[clientId])
+      const client = this.clients[clientId]
+      clients.push(client)
       latencies.push(client.estimateLatency())
     }
 
