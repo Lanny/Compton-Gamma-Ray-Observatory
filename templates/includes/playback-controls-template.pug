@@ -1,7 +1,8 @@
 .playback-controls-container
-  button.replay(data-bind="click: () => adjustTime(-10)")
-    img(class="control-button" src="/static/svg/replay-10.svg")
-  button.play-pause(data-bind="click: playerVM.togglePlayState.bind(playerVM)")
-    img(class="control-button" data-bind="attr: {src: playerVM.playPauseIcon}")
-  button.replay(data-bind="click: () => adjustTime(10)")
-    img(class="control-button" src="/static/svg/forward-10.svg")
+  .primary-buttons
+    button.replay(data-bind="click: () => adjustTime(-10)")
+      img(class="control-button" src="/static/svg/replay-10.svg")
+    button.play-pause(data-bind="click: playerVM.togglePlayState.bind(playerVM)")
+      img(class="control-button" data-bind="attr: {src: playerVM.playPauseIcon}")
+    button.replay(data-bind="click: () => adjustTime(10)")
+      img(class="control-button" src="/static/svg/forward-10.svg")

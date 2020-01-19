@@ -267,11 +267,22 @@ input[type="text"] {
 }
 
 .playback-controls-container {
-  button {
-    .inline-button();
+  height: 100%;
+  display: flex;
+  align-items: center;
 
-    img {
-      height: 15px;
+  .primary-buttons {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 50px;
+
+    button {
+      .inline-button();
+
+      img {
+        height: 15px;
+      }
     }
   }
 }
