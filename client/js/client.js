@@ -2,8 +2,16 @@
   const socket = io()
   const playerElement = document.getElementById('player-element')
 
+  function pad(n) {
+    return ('' + n).padStart(2, '0')
+  }
+
   function formatTimestamp(ts) {
-    return `${~~(ts / 60)}:${('' + (~~ts % 60)).padStart(2, '0')}`
+    const s = ~~ts % 60
+    const m = ~~(ts / 60) % 60
+    const h = ~~(ts / 3600)
+
+    return `${h?h+':':''}${h?pad(m):m}:${pad(s)}`
   }
 
   function clamp(value, max, min) {
