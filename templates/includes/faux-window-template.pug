@@ -5,7 +5,8 @@
       width: fwWidth,
       height: fwHeight,
       'z-index': $index() + 100,
-    }
+    },
+    event: { keydown: onKeyDown }
   `)
   .title-bar(data-bind=`
     event: { mousedown: fwStartDrag },

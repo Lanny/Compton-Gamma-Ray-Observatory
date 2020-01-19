@@ -76,6 +76,14 @@
 
     afterRender()  {
     }
+
+    onKeyDown(_, e) {
+      if (e.keyCode === 27) {
+        this.fwClose()
+        return false
+      }
+      return true
+    }
   }
 
   class PromptWindowViewModel extends FauxWindowViewModel {
@@ -102,6 +110,7 @@
     }
 
     afterRender() {
+      FauxWindowViewModel.prototype.afterRender.apply(this, arguments)
       setTimeout(() => this.inputHasFocus(true), 0)
     }
   }
