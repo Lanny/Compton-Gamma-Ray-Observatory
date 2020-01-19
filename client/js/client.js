@@ -99,10 +99,10 @@
   }
 
   class PlaybackControlsViewModel extends FauxWindowViewModel {
-    constructor(PVM) {
+    constructor(playerVM) {
       super('Playback')
       this.fwTemplateName = 'playback-controls-template'
-      this.PVM = PVM
+      this.playerVM = playerVM
     }
   }
 
@@ -113,6 +113,13 @@
     }
 
     openPlaybackControls() {
+      const playbackControlsViewModel = (
+        new PlaybackControlsViewModel(this.playerVM)
+      )
+
+      windowingVM.addOrFocusTaggedSubwindow(
+        'master.playbackControls',
+        playbackControlsViewModel)
     }
   }
 

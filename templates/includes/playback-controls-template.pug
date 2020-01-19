@@ -1,3 +1,3 @@
 .playback-controls-container
-  button.play-pause(data-bind="click: PVM.togglePlayState")
-    img(data-bind="attr: {src: PVM.playPauseIcon}")
+  button.play-pause(data-bind="click: playerVM.togglePlayState.call(playerVM)")
+    img(class="control-button" data-bind="attr: {src: playerVM.playPauseIcon}")

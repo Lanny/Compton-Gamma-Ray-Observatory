@@ -43,20 +43,30 @@
   }
 }
 
-.button() {
+.generic-button() {
   color: @text-color;
-  padding: 6px;
   cursor: pointer;
-  font-size: 14px;
-  border-top: 1px solid @seperator-color;
-  border-left: 1px solid @seperator-color;
-  border-right: 1px solid @seperator-color;
-  border-bottom: none;
+  border: 1px solid @seperator-color;
   background-color: @bg-grey;
 
   &:hover, &:focus {
     background-color: @active-bg;
   }
+}
+
+.row-button() {
+  .generic-button();
+
+  padding: 6px;
+  font-size: 14px;
+  border-bottom: none;
+}
+
+.inline-button() {
+  .generic-button();
+
+  border-radius: @input-border-radius;
+  padding: 5px 10px;
 }
 
 html {
@@ -176,7 +186,7 @@ input[type="text"] {
 
   & > button {
     flex: 1;
-    .button();
+    .row-button();
   }
 }
 
@@ -252,6 +262,16 @@ input[type="text"] {
         height: 100%;
         background-color: @player-fg-color;
       }
+    }
+  }
+}
+
+.playback-controls-container {
+  button {
+    .inline-button();
+
+    img {
+      height: 15px;
     }
   }
 }
