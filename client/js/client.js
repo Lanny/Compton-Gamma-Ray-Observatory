@@ -73,6 +73,9 @@
     giveFocus() {
       // TODO: layering system
     }
+
+    afterRender()  {
+    }
   }
 
   class PromptWindowViewModel extends FauxWindowViewModel {
@@ -81,6 +84,7 @@
       this.fwTemplateName = 'prompt-template'
       this.query = query
       this.response = ko.observable('')
+      this.inputHasFocus = ko.observable(false)
       this.promise = new Promise((resolve, reject) => {
         this.resolve = resolve
         this.reject = reject
@@ -95,6 +99,10 @@
     fwClose() {
       this.reject()
       this.signalWindowClose()
+    }
+
+    afterRender() {
+      setTimeout(() => this.inputHasFocus(true), 0)
     }
   }
 
