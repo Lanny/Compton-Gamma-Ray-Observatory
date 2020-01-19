@@ -64,11 +64,13 @@
       this.fwX = ko.observable(initialX)
       this.fwY = ko.observable(initialY)
       this.fwDragging = ko.observable(false)
+      this.windowOrder = ko.observable(999)
     }
 
     fwStartDrag(_, e) {
       this.windowDragBase = [this.fwX(), this.fwY()]
       this.fwDragging(true)
+      windowingVM.giveFocus(this)
 
       windowingVM.startDrag(e.clientX, e.clientY)
         .drag((dX, dY) => {
@@ -85,8 +87,11 @@
       this.signalWindowClose()
     }
 
-    giveFocus() {
-      // TODO: layering system
+    onFocus() {
+    }
+
+    onFocusIn() {
+      windowingVM.giveFocus(this)
     }
 
     afterRender()  {
@@ -129,8 +134,8 @@
       setTimeout(() => this.inputHasFocus(true), 0)
     }
 
-    giveFocus() {
-      FauxWindowViewModel.prototype.giveFocus.apply(this, arguments)
+    onFocus() {
+      FauxWindowViewModel.prototype.onFocus.apply(this, arguments)
       setTimeout(() => this.inputHasFocus(true), 0)
     }
   }
@@ -193,6 +198,24 @@
       this._windowTags = {}
     }
 
+    giveFocus(subwindow) {
+      if (subwindow.windowOrder() === 0) {
+        // Subwindow already has focus
+        return
+      }
+
+      const idx = this.subwindows.indexOf(subwindow)
+      this.subwindows.splice(idx, 1)
+      this.subwindows.push(subwindow)
+
+      const len = this.subwindows().length
+      this.subwindows().forEach((sw, i) => {
+        sw.windowOrder(len - i - 1)
+      })
+
+      subwindow.onFocus()
+    }
+
     addSubwindow(subwindow) {
       subwindow.id = this._idCounter++
       subwindow.signalWindowClose = () => {
@@ -201,6 +224,7 @@
       }
       this.subwindowLookup[subwindow.id] = subwindow
       this.subwindows.push(subwindow)
+      this.giveFocus(subwindow)
     }
 
     isTaggedWindowAlive(tag) {
@@ -216,7 +240,7 @@
     addOrFocusTaggedSubwindow(tag, subwindow) {
       if (tag in this._windowTags) {
         if (this._windowTags[tag].id in this.subwindowLookup) {
-          this._windowTags[tag].giveFocus() 
+          this.giveFocus(this._windowTags[tag])
           return false
         } else {
           delete this._windowTags[tag]
