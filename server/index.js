@@ -12,6 +12,7 @@ const indexTemplate = pug.compileFile('templates/index.pug')
 
 const MAX_DESYNC = 1.0
 const PING_INTERVAL = 1.5
+const PEER_STATUS_INTERVAL = 1.5
 const LATENCY_MEASURES = 10
 const TARGETING_WINDOW = 2.0
 
@@ -131,7 +132,9 @@ class Room {
 
     io.on('connection', this.onConnect.bind(this))
     this._updatePlaybackStatus(0, false)
+
     this.poll()
+    this.peerStatusBroadcast()
   }
 
   _emit(eventName, data) {
@@ -267,6 +270,22 @@ class Room {
     }
 
     setTimeout(this.poll.bind(this), ~~(PING_INTERVAL * 1000))
+  }
+
+  peerStatusBroadcast() {
+    const peers = this._mapClients(client => ({
+      id: client.id,
+      latency: client.estimateLatency(),
+      playbackTime: client.estimatePlaybackTime(),
+    }))
+
+    this._mapClients(client => {
+      client.sendEvent('peerStatus', { yourId: client.id, peers })
+    })
+
+    setTimeout(
+      this.peerStatusBroadcast.bind(this),
+      ~~(PEER_STATUS_INTERVAL * 1000))
   }
 
   staggeredBroadcast(cb) {
