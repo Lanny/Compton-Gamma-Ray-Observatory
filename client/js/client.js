@@ -34,11 +34,18 @@
   }
 
   class FauxWindowViewModel {
-    constructor(title, width, height, initialX, initialY) {
+    constructor(options) {
+      let { title, width, height, initialX, initialY } = {
+        title: 'Nameless Window',
+        width: 300,
+        height: 100,
+        initialX: null,
+        initialY: null,
+        ...options
+      }
+
       this.fwTitle = ko.observable(title)
 
-      if (!width) width = 300
-      if (!height) height = 100
       if (!initialX)
         initialX = document.documentElement.clientWidth  / 2 - width / 2
       if (!initialY)
@@ -87,8 +94,8 @@
   }
 
   class PromptWindowViewModel extends FauxWindowViewModel {
-    constructor(title, query) {
-      super(title)
+    constructor({ query, ...options }) {
+      super(options)
       this.fwTemplateName = 'prompt-template'
       this.query = query
       this.response = ko.observable('')
@@ -122,7 +129,7 @@
 
   class PlaybackControlsViewModel extends FauxWindowViewModel {
     constructor(playerVM) {
-      super('Playback')
+      super({ title: 'Playback' })
       this.fwTemplateName = 'playback-controls-template'
       this.playerVM = playerVM
     }
@@ -343,9 +350,10 @@
     }
 
     promptForNewSource() {
-      const changeSourcePrompt = new PromptWindowViewModel(
-        'Change Source',
-        'Enter the url of the new media source')
+      const changeSourcePrompt = new PromptWindowViewModel({
+        title: 'Change Source',
+        query: 'Enter the url of the new media source'
+      })
 
       changeSourcePrompt
         .promise
