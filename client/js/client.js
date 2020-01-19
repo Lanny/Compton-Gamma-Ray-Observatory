@@ -140,6 +140,14 @@
     }
   }
 
+  class SettingsViewModel extends FauxWindowViewModel {
+    constructor(playerVM) {
+      super({ title: 'Settings' })
+      this.fwTemplateName = 'settings-template'
+      this.playerVM = playerVM
+    }
+  }
+
   class MasterViewModel {
     constructor(windowingVM, playerVM) {
       this.playerVM = playerVM
@@ -154,6 +162,16 @@
       windowingVM.addOrFocusTaggedSubwindow(
         'master.playbackControls',
         playbackControlsViewModel)
+    }
+
+    openSettings() {
+      const settingsViewModel = (
+        new SettingsViewModel(this.playerVM)
+      )
+
+      windowingVM.addOrFocusTaggedSubwindow(
+        'master.settings',
+        settingsViewModel)
     }
   }
 
@@ -244,6 +262,7 @@
       this.durationRaw = ko.observable(0)
       this.playStatus = ko.observable('PAUSED')
       this.bufferEnd = ko.observable(0)
+      this.drawBufferHealth = ko.observable(false)
 
       this.videoSrc = ko.observable('')
       this.bufferHealth = ko.computed(() => {

@@ -18,7 +18,8 @@ html
 
       .main-video-container
         .player-container(data-bind="using: playerVM")
-          #buffer-readout(data-bind="text: bufferHealth()")
+          #buffer-readout(data-bind="if: drawBufferHealth")
+            span(data-bind="text: bufferHealth()")
           video#player-element(data-bind="click: togglePlayState" preload="auto")
             source(data-bind="attr: {src: videoSrc}" type="video/mp4")
             p Video playback is not supported by your browser
@@ -40,6 +41,7 @@ html
       .additional-controls
         button#participants Participants
         button#playback(data-bind="click: openPlaybackControls") Playback
+        button#settings(data-bind="click: openSettings") Settings
 
     script#faux-window-template(type="text/html")
       include includes/faux-window-template.pug
@@ -49,6 +51,9 @@ html
       include includes/drag-bar-template.pug
     script#playback-controls-template(type="text/html")
       include includes/playback-controls-template.pug
+    script#settings-template(type="text/html")
+      include includes/settings-template.pug
+
 
     script(src="/socket.io/socket.io.js")
     script(src="/static/vendor/knockout-3.5.0.js")
