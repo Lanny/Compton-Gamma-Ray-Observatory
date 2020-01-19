@@ -159,6 +159,7 @@
       subwindow.id = this._idCounter++
       subwindow.signalWindowClose = () => {
         this.subwindows.remove(sw => sw.id === subwindow.id)
+        delete this.subwindowLookup[subwindow.id]
       }
       this.subwindowLookup[subwindow.id] = subwindow
       this.subwindows.push(subwindow)
