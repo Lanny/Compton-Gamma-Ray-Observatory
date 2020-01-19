@@ -1,3 +1,5 @@
 .playback-controls-container
+  button.replay
+    img(class="control-button" src="/static/svg/replay-10.svg")
   button.play-pause(data-bind="click: playerVM.togglePlayState.call(playerVM)")
     img(class="control-button" data-bind="attr: {src: playerVM.playPauseIcon}")
