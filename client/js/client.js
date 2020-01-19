@@ -113,6 +113,11 @@
       FauxWindowViewModel.prototype.afterRender.apply(this, arguments)
       setTimeout(() => this.inputHasFocus(true), 0)
     }
+
+    giveFocus() {
+      FauxWindowViewModel.prototype.giveFocus.apply(this, arguments)
+      setTimeout(() => this.inputHasFocus(true), 0)
+    }
   }
 
   class PlaybackControlsViewModel extends FauxWindowViewModel {
