@@ -278,12 +278,12 @@
       this.el.currentTime = timestamp
 
       if (waitForBuffer !== undefined) {
-        const sub = this.bufferEnd.subscribe(bufferEnd => {
+        const interval = setInterval( ()=> {
           if (this._currentBufferLength() >= waitForBuffer) {
-            sub.dispose()
+            clearInterval(interval)
             cb()
           }
-        })
+        }, 100)
       }
     }
 
